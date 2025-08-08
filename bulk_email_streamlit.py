@@ -12,6 +12,11 @@ import tempfile
 import io
 import time
 
+# Initialize session state for login
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+    st.experimental_set_query_params()  # Clear any query params to ensure fresh state
+
 # Valid users (use Streamlit secrets for deployment)
 VALID_USERS = {
     "admin": "james",  # Replace with secure credentials
@@ -100,13 +105,12 @@ def save_delivery_report(delivery_report):
     sheet = workbook.active
     sheet.title = "Delivery Report"
     sheet.append(["Email", "Status", "Timestamp"])
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # 2025-08-08 22:02:00
     for email in delivery_report["sent"]:
         sheet.append([email, "Sent", timestamp])
     for email in delivery_report["failed"]:
         sheet.append([email, "Failed", timestamp])
     
-    # Save to BytesIO for download
     buffer = io.BytesIO()
     workbook.save(buffer)
     buffer.seek(0)
@@ -123,14 +127,27 @@ def safe_unlink(file_path):
             return True
         except PermissionError as e:
             if attempt < max_attempts - 1:
-                time.sleep(1)  # Wait before retrying
+                time.sleep(1)
                 continue
             print(f"Failed to delete {file_path}: {e}")
             return False
 
-# Streamlit app
-def main():
-    # Display company logo and name
+# Login page
+def login_page():
+    st.title("Login")
+    username = st.text_input("Username")
+    password = st.text_input("Password", type="password")
+    if st.button("Login"):
+        if username in VALID_USERS and VALID_USERS[username] == password:
+            st.session_state.logged_in = True
+            st.success("Login successful!")
+            st.rerun()
+        else:
+            st.error("Invalid username or password")
+    st.write(f"Debug: logged_in = {st.session_state.logged_in}")  # Debug statement
+
+# Main app content
+def main_app():
     st.image(
         "https://sparklecommercialcleaning.com.au/wp-content/uploads/2023/05/cropped-sparkle_logo-1.png",
         width=200,
@@ -139,7 +156,6 @@ def main():
     st.markdown("<h1 style='text-align: center; color: #333;'>Sparkle Commercial Cleaning</h1>", unsafe_allow_html=True)
     st.markdown("<h2 style='text-align: center; color: #555;'>Bulk Email Sender</h2>", unsafe_allow_html=True)
 
-    # Form inputs
     sender = st.selectbox("Select Sender Email:", list(EMAIL_ACCOUNTS.keys()))
     subject = st.text_input("Subject:", key="subject")
     message_html = st.text_area("Message (Raw HTML, will add 'Dear [Name]' automatically):", height=150, key="message")
@@ -151,7 +167,6 @@ def main():
             st.error("Please upload an Excel file.")
             return
 
-        # Save uploaded files temporarily
         with tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx") as tmp_excel:
             tmp_excel.write(excel_file.read())
             excel_path = tmp_excel.name
@@ -185,13 +200,11 @@ def main():
                 safe_unlink(attachment_path)
             return
 
-        # Initialize progress bar
         progress_bar = st.progress(0)
         status_text = st.empty()
         total_emails = len(valid_recipients)
         delivery_report = {"sent": [], "failed": []}
 
-        # Send emails with progress
         for i, (name, email) in enumerate(valid_recipients, 1):
             success = send_email(sender, EMAIL_ACCOUNTS[sender], email, name, subject, message_html, attachment_path)
             if success:
@@ -199,20 +212,15 @@ def main():
             else:
                 delivery_report["failed"].append(email)
             
-            # Update progress
             progress = i / total_emails
             progress_bar.progress(progress)
             status_text.text(f"Progress: {i}/{total_emails} emails sent")
 
-        # Clean up temporary files
         safe_unlink(excel_path)
         if attachment_path:
             safe_unlink(attachment_path)
 
-        # Display report
         st.info(f"Delivery Report: Sent: {len(delivery_report['sent'])}, Failed: {len(delivery_report['failed'])}")
-
-        # Provide download button for report
         report_buffer, report_filename = save_delivery_report(delivery_report)
         st.download_button(
             label="Download Delivery Report",
@@ -220,6 +228,14 @@ def main():
             file_name=report_filename,
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
+
+# Main app logic
+def main():
+    st.write(f"Debug: Initial logged_in = {st.session_state.logged_in}")  # Debug initial state
+    if not st.session_state.logged_in:
+        login_page()
+    else:
+        main_app()
 
 if __name__ == "__main__":
     main()

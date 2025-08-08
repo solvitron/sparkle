@@ -15,12 +15,12 @@ import time
 # Initialize session state for login
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
-    st.query_params.clear()  # Replace st.experimental_set_query_params with st.query_params.clear()
+    st.query_params.clear()  # Clear query parameters to ensure fresh state
 
 # Valid users (use Streamlit secrets for deployment)
 VALID_USERS = {
-    "admin": "james",  # Replace with secure credentials
-    "user1": "james"
+    "james": "james",  # Replace with secure credentials
+    "arif": "arif"
 }
 
 # Email accounts (use Streamlit secrets for deployment)
@@ -105,7 +105,7 @@ def save_delivery_report(delivery_report):
     sheet = workbook.active
     sheet.title = "Delivery Report"
     sheet.append(["Email", "Status", "Timestamp"])
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # 2025-08-08 22:05:00
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # 2025-08-08 22:07:00
     for email in delivery_report["sent"]:
         sheet.append([email, "Sent", timestamp])
     for email in delivery_report["failed"]:
@@ -233,6 +233,7 @@ def main_app():
 def main():
     st.write(f"Debug: Initial logged_in = {st.session_state.logged_in}")  # Debug initial state
     if not st.session_state.logged_in:
+        st.empty()  # Clear any previous content
         login_page()
     else:
         main_app()

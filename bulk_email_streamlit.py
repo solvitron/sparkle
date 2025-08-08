@@ -14,10 +14,10 @@ import time
 
 # Email accounts (use Streamlit secrets for deployment)
 EMAIL_ACCOUNTS = {
-    "info.solvitrontech@gmail.com": "jvpp icnc kbdc vmtp",
-    "mdarif92@gmail.com": "your_app_password2",
-    "yourgmail3@gmail.com": "your_app_password3",
-    "yourgmail4@gmail.com": "your_app_password4",
+    "commercialcleaningbest@gmail.com": "uftl wdaz frbb cgda",
+    "commercialcleaningm@gmail.com": "pzbp przh rmul sspz",
+    "melbournecommercialcleaning2@gmail.com": "wusv clda ogbr knun",
+    "ccleaning82@gmail.com": "rbte bvww wvde ywij",
     "yourgmail5@gmail.com": "your_app_password5"
 }
 
@@ -216,4 +216,5 @@ def main():
         )
 
 if __name__ == "__main__":
+
     main()

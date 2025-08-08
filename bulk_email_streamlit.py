@@ -12,14 +12,11 @@ import tempfile
 import io
 import time
 
-# Initialize session state for login
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
-
 # Valid users (use Streamlit secrets for deployment)
 VALID_USERS = {
     "admin": "james",  # Replace with secure credentials
     "user1": "james"
+}
 
 # Email accounts (use Streamlit secrets for deployment)
 EMAIL_ACCOUNTS = {
@@ -225,6 +222,4 @@ def main():
         )
 
 if __name__ == "__main__":
-
     main()
-
